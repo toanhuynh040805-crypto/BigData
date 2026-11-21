@@ -69,3 +69,11 @@ Nếu thiếu thư viện, cài tối thiểu: `.\.venv\Scripts\python.exe -m pi
 **Giao diện đầy đủ:** [Ảnh minh chứng và hướng dẫn demo](docs/DASHBOARD.md) · [GitHub Actions](https://github.com/toanhuynh040805-crypto/BigData/actions).
 
 Các thư viện cần để xem Dashboard được tách riêng tại [requirements-dashboard.txt](requirements-dashboard.txt), tránh tải gói PySpark lớn khi chỉ thuyết trình.
+
+## Giao diện enterprise (tháng 11/2026)
+
+- Điều hướng dạng ứng dụng, icon SVG đồng bộ và hệ thống màu xanh navy – teal – blue.
+- Hero phân tích dữ liệu, nhãn nguồn và các KPI/biểu đồ theo phong cách báo cáo doanh nghiệp.
+- Dashboard vẫn chạy trực tiếp từ `results/uci/`, không cần Java/PySpark khi chỉ trình diễn.
+
+Cập nhật trên Windows: `cd E:\BigData` → `git pull --ff-only origin main` → `.\.venv\Scripts\python.exe -m streamlit run dashboard/app.py`.

@@ -4,12 +4,12 @@ from __future__ import annotations
 import plotly.graph_objects as go
 import streamlit as st
 
-TEAL = "#07848A"
-INK = "#19364B"
-BLUE = "#4975B7"
-GOLD = "#D7A343"
-CORAL = "#E47768"
-PURPLE = "#8263B9"
+TEAL = "#0D9DA5"
+INK = "#14263D"
+BLUE = "#3867C9"
+GOLD = "#DFA34E"
+CORAL = "#EC776B"
+PURPLE = "#815DBE"
 PALETTE = [TEAL, BLUE, GOLD, PURPLE, CORAL]
 
 
@@ -22,7 +22,7 @@ def style(fig: go.Figure, height: int = 340) -> go.Figure:
         hovermode="x unified", showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, font=dict(size=11)),
         xaxis=dict(showgrid=False, zeroline=False, linecolor="#E5ECF2"),
-        yaxis=dict(showgrid=True, gridcolor="#EFF3F6", zeroline=False),
+        yaxis=dict(showgrid=True, gridcolor="#EDF1F7", zeroline=False),
     )
     return fig
 

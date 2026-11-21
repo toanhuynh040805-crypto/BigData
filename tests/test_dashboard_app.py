@@ -5,12 +5,12 @@ from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = [
-    "🏠 Tổng quan",
-    "📊 Xu hướng & cao điểm",
-    "🔌 Nhánh thiết bị",
-    "🧠 Dự báo AI",
-    "🛡️ Chất lượng dữ liệu",
-    "📥 Dữ liệu & báo cáo",
+    "Tổng quan",
+    "Phân tích xu hướng",
+    "Thiết bị tiêu thụ",
+    "Dự báo thông minh",
+    "Chất lượng dữ liệu",
+    "Xuất dữ liệu & báo cáo",
 ]
 
 

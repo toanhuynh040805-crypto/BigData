@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import date, timedelta
-from html import escape
+from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -18,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from dashboard.analytics import prepare_daily, prepare_predictions, select_daily
+from dashboard.branding import hero_header, sidebar_brand, sidebar_data_badge
 from dashboard.pages_explore import render_devices, render_overview, render_trends
 from dashboard.pages_insights import render_data, render_forecast, render_quality
 
@@ -25,17 +25,17 @@ REQUIRED = ("daily.csv", "monthly.csv", "hourly_profile.csv", "quality.json", "m
 PUBLISHED = ROOT / "results" / "uci"
 LOCAL = ROOT / "data" / "outputs"
 PAGES = [
-    "🏠 Tổng quan",
-    "📊 Xu hướng & cao điểm",
-    "🔌 Nhánh thiết bị",
-    "🧠 Dự báo AI",
-    "🛡️ Chất lượng dữ liệu",
-    "📥 Dữ liệu & báo cáo",
+    "Tổng quan",
+    "Phân tích xu hướng",
+    "Thiết bị tiêu thụ",
+    "Dự báo thông minh",
+    "Chất lượng dữ liệu",
+    "Xuất dữ liệu & báo cáo",
 ]
 
 st.set_page_config(
     page_title="Energy Intelligence | BigData",
-    page_icon="⚡",
+    page_icon=":material/electric_bolt:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -94,17 +94,16 @@ if not sources:
     st.stop()
 
 with st.sidebar:
-    st.markdown('<div class="sidebar-title">⚡ ENERGY INTELLIGENCE</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-subtitle">BIG DATA · CAPSTONE PROJECT</div>', unsafe_allow_html=True)
+    st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    navigation = st.radio("KHÔNG GIAN LÀM VIỆC", PAGES, label_visibility="visible")
     st.divider()
-    navigation = st.radio("KHÁM PHÁ DỮ LIỆU", PAGES, label_visibility="visible")
-    st.divider()
-    st.markdown("**Nguồn dữ liệu**")
+    st.markdown('<div class="sidebar-section-heading">QUẢN LÝ DỮ LIỆU</div>', unsafe_allow_html=True)
+    st.markdown("**Nguồn phân tích**")
     selected_source = st.selectbox("Bộ kết quả", list(sources), label_visibility="collapsed")
-    if st.button("↻ Nạp lại tệp dữ liệu", use_container_width=True):
+    if st.button("Nạp lại dữ liệu", icon=":material/refresh:", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
-    st.caption("Nguồn công bố trên GitHub được ưu tiên; kết quả chạy lại trên máy là lựa chọn riêng.")
+    st.caption("Chọn kết quả GitHub hoặc bộ dữ liệu Spark đã xử lý tại máy.")
 
 result_dir = sources[selected_source]
 try:
@@ -168,11 +167,9 @@ with st.sidebar:
     ) / 100
     st.caption(f"{start:%d/%m/%Y} → {end:%d/%m/%Y}")
     st.divider()
-    st.markdown(
-        "[Nguồn UCI](https://doi.org/10.24432/C58K54) · "
-        "[Mã nguồn GitHub](https://github.com/toanhuynh040805-crypto/BigData)"
-    )
-    st.caption("Historical data 2006–2010 · One household · CC BY 4.0")
+    st.markdown(sidebar_data_badge(), unsafe_allow_html=True)
+    st.caption("[Nguồn UCI](https://doi.org/10.24432/C58K54) · "
+               "[GitHub](https://github.com/toanhuynh040805-crypto/BigData)")
 
 if start > end:
     st.error("Ngày bắt đầu phải nhỏ hơn ngày kết thúc.")
@@ -184,22 +181,17 @@ if selected.empty:
 
 is_uci = quality.get("data_provenance") == "uci" and metrics.get("data_provenance") == "uci"
 st.markdown(
-    '<div class="hero">'
-    '<div class="hero-eyebrow">BÁO CÁO ĐỒ ÁN CUỐI KỲ · NHẬP MÔN BIG DATA</div>'
-    '<h1>Phân tích & dự báo<br>tiêu thụ điện năng</h1>'
-    '<p>Hệ thống phân tích lịch sử sử dụng điện của một hộ gia đình bằng Apache Spark; '
-    'khám phá chu kỳ tiêu thụ, đánh giá chất lượng và dự báo với Random Forest Regression.</p>'
-    '<div class="hero-pills"><span>⚡ APACHE SPARK</span><span>🧠 RANDOM FOREST</span>'
-    '<span>📈 STREAMLIT + PLOTLY</span><span>🗂 UCI 2006–2010</span></div>'
-    '</div>',
+    hero_header(
+        int(quality.get("clean_unique_rows", 0)),
+        first.strftime("%m/%Y"),
+        last.strftime("%m/%Y"),
+        is_uci,
+    ),
     unsafe_allow_html=True,
 )
 
 if is_uci:
-    st.success(
-        "Nguồn đang xem: UCI Household Power Consumption (số liệu lịch sử thực). "
-        "Kết quả mô hình được lấy từ pipeline Spark; các biểu đồ ngày tùy thuộc bộ lọc."
-    )
+    st.caption("Nguồn: UCI Household Power Consumption · Kết quả mô hình tính bằng Spark; biểu đồ biến đổi theo bộ lọc đang chọn.")
 elif quality.get("data_provenance") == "synthetic" or metrics.get("data_provenance") == "synthetic":
     st.error(
         "DỮ LIỆU GIẢ LẬP (SYNTHETIC): chỉ để kiểm thử giao diện, "
