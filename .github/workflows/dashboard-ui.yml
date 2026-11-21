@@ -1,0 +1,33 @@
+name: Dashboard UI smoke test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - dashboard/**
+      - tests/test_dashboard_app.py
+      - tests/test_dashboard_analytics.py
+      - .github/workflows/dashboard-ui.yml
+  pull_request:
+    paths:
+      - dashboard/**
+      - tests/test_dashboard_app.py
+      - tests/test_dashboard_analytics.py
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install UI dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "streamlit>=1.37,<2" "plotly>=5.24,<8" "pandas>=2.1,<4" "pytest>=8,<10"
+      - name: Compile UI code
+        run: python -m compileall -q dashboard tests/test_dashboard_app.py tests/test_dashboard_analytics.py
+      - name: Run analytics and six-page UI tests
+        run: python -m pytest -q tests/test_dashboard_analytics.py tests/test_dashboard_app.py

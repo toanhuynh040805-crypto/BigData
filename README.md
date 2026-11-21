@@ -4,7 +4,7 @@
 
 Hệ thống phân tích dữ liệu tiêu thụ điện của một hộ gia đình bằng **Apache Spark/PySpark**, lưu kết quả Parquet, xây dựng mô hình **Random Forest Regression** để dự báo nhu cầu điện ngày tiếp theo, và trực quan hóa qua **Streamlit**.
 
-> Trạng thái: mã nguồn đang được hoàn thiện. Chưa công bố điểm số mô hình nào là kết quả tái lập được trước khi chạy toàn bộ dữ liệu UCI.
+> Trạng thái: pipeline UCI thật và bộ kiểm thử đã chạy thành công trên GitHub Actions; dashboard 6 màn hình đang được cập nhật để phục vụ demo đồ án.
 
 ## Cài đặt nhanh (Windows PowerShell)
 
@@ -52,6 +52,18 @@ GitHub Actions đã chạy trực tiếp trên dữ liệu UCI gốc và lưu [b
 - Random Forest: MAE **3,9731**, RMSE **5,4152** kWh/ngày; baseline hôm trước: MAE **5,0621** kWh/ngày.
 - Dự báo cho **26/11/2010** trên lịch sử đủ dữ liệu: khoảng **29,32 kWh**. Không phải dự báo thời điểm hiện tại.
 
-Bạn có thể mở ngay dashboard từ các CSV đã công bố sau khi cài dependencies: \`streamlit run dashboard/app.py\` (không cần tải lại UCI). Khi chạy pipeline riêng, dashboard sẽ ưu tiên \`data/outputs/\` trên máy.
+Dashboard có 6 màn hình với đồ thị ngày/tháng, cao điểm, ba nhánh thiết bị, bất thường IQR, dự báo AI, chất lượng dữ liệu và xuất bảng CSV/JSON. Có thể mở từ kết quả UCI đã lưu trên GitHub, KHÔNG cần cài Java/PySpark để xem biểu đồ. Hướng dẫn chi tiết tại [docs/DASHBOARD.md](docs/DASHBOARD.md).
 
 Các file Word/PPT do hệ thống sinh **chưa điền thông tin giảng viên, nhóm và phân công thực tế**; cần rà soát định dạng, nội dung trước khi nộp.
+
+## Mở Dashboard trên ổ E: (nhẹ, không cần PySpark)
+
+~~~powershell
+cd E:\BigData
+git pull origin main
+.\.venv\Scripts\python.exe -m streamlit run dashboard/app.py
+~~~
+
+Nếu thiếu thư viện, cài tối thiểu: `.\.venv\Scripts\python.exe -m pip install streamlit plotly pandas --timeout 300 --retries 10`. Chọn “UCI thật · Kết quả GitHub” ở thanh bên để demo số liệu đã kiểm thử.
+
+**Giao diện đầy đủ:** [Ảnh minh chứng và hướng dẫn demo](docs/DASHBOARD.md) · [GitHub Actions](https://github.com/toanhuynh040805-crypto/BigData/actions).
