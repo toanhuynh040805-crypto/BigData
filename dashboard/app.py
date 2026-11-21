@@ -1,201 +1,231 @@
-"""Interactive Streamlit dashboard for saved Spark aggregates (no Spark in UI)."""
+"""BigData Energy Intelligence — historical UCI analysis & reproducible AI results.
+
+Designed to run directly from committed CSV/JSON. No Java or PySpark is
+needed just to present the project in class.
+"""
 from __future__ import annotations
 
 import json
+import sys
+from datetime import date, timedelta
+from html import escape
 from pathlib import Path
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCAL_RESULTS = ROOT / "data" / "outputs"
-PUBLISHED_RESULTS = ROOT / "results" / "uci"
-REQUIRED_EXPORTS = ("daily.csv", "monthly.csv", "hourly_profile.csv", "quality.json", "metrics.json")
-RESULTS = LOCAL_RESULTS if all((LOCAL_RESULTS / name).is_file() for name in REQUIRED_EXPORTS) else PUBLISHED_RESULTS
+sys.path.insert(0, str(ROOT))
 
-st.set_page_config(page_title="BigData | Phân tích điện năng", page_icon="⚡", layout="wide")
-st.title("⚡ Phân tích và dự báo tiêu thụ điện năng")
-st.caption("Đồ án Nhập môn Big Data · Apache Spark / PySpark · Một hộ gia đình")
-if RESULTS == PUBLISHED_RESULTS:
-    st.caption("Đang xem kết quả UCI thật đã được xử lý và công bố trong repository. Chạy pipeline để thay bằng kết quả riêng.")
+from dashboard.analytics import prepare_daily, prepare_predictions, select_daily
+from dashboard.pages_explore import render_devices, render_overview, render_trends
+from dashboard.pages_insights import render_data, render_forecast, render_quality
 
-required = list(REQUIRED_EXPORTS)
-missing = [name for name in required if not (RESULTS / name).exists()]
-if missing:
-    st.error("Chưa có dữ liệu để hiển thị: " + ", ".join(missing))
+REQUIRED = ("daily.csv", "monthly.csv", "hourly_profile.csv", "quality.json", "metrics.json")
+PUBLISHED = ROOT / "results" / "uci"
+LOCAL = ROOT / "data" / "outputs"
+PAGES = [
+    "🏠 Tổng quan",
+    "📊 Xu hướng & cao điểm",
+    "🔌 Nhánh thiết bị",
+    "🧠 Dự báo AI",
+    "🛡️ Chất lượng dữ liệu",
+    "📥 Dữ liệu & báo cáo",
+]
+
+st.set_page_config(
+    page_title="Energy Intelligence | BigData",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+st.markdown(
+    f"<style>{(ROOT / 'dashboard' / 'style.css').read_text(encoding='utf-8')}</style>",
+    unsafe_allow_html=True,
+)
+
+
+@st.cache_data(show_spinner="Đang tải dữ liệu phân tích...")
+def _csv(file_path: str, modified: float) -> pd.DataFrame:
+    return pd.read_csv(file_path)
+
+
+@st.cache_data(show_spinner=False)
+def _json(file_path: str, modified: float) -> dict:
+    return json.loads(Path(file_path).read_text(encoding="utf-8"))
+
+
+def csv_from(directory: Path, filename: str, optional: bool = False) -> pd.DataFrame:
+    path = directory / filename
+    if not path.is_file():
+        if optional:
+            return pd.DataFrame()
+        raise FileNotFoundError(path)
+    return _csv(str(path), path.stat().st_mtime)
+
+
+def json_from(directory: Path, filename: str) -> dict:
+    path = directory / filename
+    return _json(str(path), path.stat().st_mtime)
+
+
+def source_available(directory: Path) -> bool:
+    return all((directory / name).is_file() for name in REQUIRED)
+
+
+sources = {}
+if source_available(PUBLISHED):
+    sources["UCI thật · Kết quả GitHub"] = PUBLISHED
+if source_available(LOCAL):
+    sources["Kết quả Spark · Trên máy"] = LOCAL
+
+if not sources:
+    st.error("Chưa tìm thấy bộ dữ liệu đầu ra để hiển thị Dashboard.")
+    st.info(
+        "Dùng mã nguồn GitHub đầy đủ (thư mục results/uci), "
+        "hoặc chạy scripts/download_data.py rồi scripts/run_pipeline.py."
+    )
     st.code(
-        "python scripts/download_data.py\n"
-        "python scripts/run_pipeline.py --data-provenance uci\n"
-        "streamlit run dashboard/app.py",
+        "cd E:\\BigData\n"
+        "git pull origin main\n"
+        ".\\.venv\\Scripts\\python.exe -m streamlit run dashboard/app.py",
         language="powershell",
     )
     st.stop()
 
-
-@st.cache_data(show_spinner=False)
-def load_csv(path: str) -> pd.DataFrame:
-    return pd.read_csv(path)
-
-
-@st.cache_data(show_spinner=False)
-def load_json(path: str) -> dict:
-    with open(path, encoding="utf-8") as file:
-        return json.load(file)
-
-
 with st.sidebar:
-    st.header("Bộ lọc")
-    if st.button("Làm mới dữ liệu"):
+    st.markdown('<div class="sidebar-title">⚡ ENERGY INTELLIGENCE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-subtitle">BIG DATA · CAPSTONE PROJECT</div>', unsafe_allow_html=True)
+    st.divider()
+    navigation = st.radio("KHÁM PHÁ DỮ LIỆU", PAGES, label_visibility="visible")
+    st.divider()
+    st.markdown("**Nguồn dữ liệu**")
+    selected_source = st.selectbox("Bộ kết quả", list(sources), label_visibility="collapsed")
+    if st.button("↻ Nạp lại tệp dữ liệu", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
+    st.caption("Nguồn công bố trên GitHub được ưu tiên; kết quả chạy lại trên máy là lựa chọn riêng.")
 
-daily = load_csv(str(RESULTS / "daily.csv"))
-monthly = load_csv(str(RESULTS / "monthly.csv"))
-hourly = load_csv(str(RESULTS / "hourly_profile.csv"))
-quality = load_json(str(RESULTS / "quality.json"))
-metrics = load_json(str(RESULTS / "metrics.json"))
-
-daily["date"] = pd.to_datetime(daily["date"], errors="coerce")
-daily = daily.dropna(subset=["date"]).sort_values("date")
-if daily.empty:
-    st.warning("Không có ngày quan sát hợp lệ.")
+result_dir = sources[selected_source]
+try:
+    daily = prepare_daily(csv_from(result_dir, "daily.csv"))
+    hourly = csv_from(result_dir, "hourly_profile.csv")
+    quality = json_from(result_dir, "quality.json")
+    metrics = json_from(result_dir, "metrics.json")
+    predictions_raw = csv_from(result_dir, "predictions.csv", optional=True)
+    predictions = (
+        prepare_predictions(predictions_raw)
+        if not predictions_raw.empty
+        else pd.DataFrame()
+    )
+    forecast = csv_from(result_dir, "forecast.csv", optional=True)
+    if not forecast.empty:
+        forecast["date"] = pd.to_datetime(forecast["date"], errors="coerce")
+        forecast["predicted_kwh"] = pd.to_numeric(forecast["predicted_kwh"], errors="coerce")
+        forecast = forecast.dropna(subset=["date", "predicted_kwh"])
+    hourly["hour"] = pd.to_numeric(hourly["hour"], errors="coerce")
+    hourly["mean_power_kw"] = pd.to_numeric(hourly["mean_power_kw"], errors="coerce")
+    hourly = hourly.dropna(subset=["hour", "mean_power_kw"]).sort_values("hour")
+except (OSError, ValueError, KeyError) as error:
+    st.error(f"Lỗi đọc dữ liệu: {error}")
+    st.caption("Kiểm tra cấu trúc dữ liệu; có thể tải lại bằng git pull origin main.")
     st.stop()
 
-start_default, end_default = daily["date"].min().date(), daily["date"].max().date()
+if daily.empty:
+    st.error("Bảng ngày không có dữ liệu hợp lệ.")
+    st.stop()
+
+first, last = daily["date"].min().date(), daily["date"].max().date()
 with st.sidebar:
-    start = st.date_input("Từ ngày", value=start_default, min_value=start_default, max_value=end_default)
-    end = st.date_input("Đến ngày", value=end_default, min_value=start_default, max_value=end_default)
-    st.caption("Đơn vị năng lượng: kWh; công suất: kW.")
+    st.divider()
+    st.markdown("**Bộ lọc phân tích**")
+    period = st.selectbox(
+        "Khoảng thời gian",
+        ["Toàn bộ dữ liệu", "12 tháng cuối", "90 ngày cuối", "Tùy chọn"],
+    )
+    if period == "Toàn bộ dữ liệu":
+        start, end = first, last
+    elif period == "12 tháng cuối":
+        start, end = max(first, last - timedelta(days=365)), last
+    elif period == "90 ngày cuối":
+        start, end = max(first, last - timedelta(days=89)), last
+    else:
+        chosen = st.date_input(
+            "Chọn từ ngày → đến ngày",
+            value=(first, last),
+            min_value=first, max_value=last,
+        )
+        if not isinstance(chosen, (tuple, list)) or len(chosen) != 2:
+            st.info("Chọn đủ cả ngày bắt đầu và kết thúc.")
+            st.stop()
+        start, end = chosen
+    minimum = st.slider(
+        "Bao phủ tối thiểu mỗi ngày",
+        0, 100, 0, step=5,
+        format="%d%%",
+        help="Lọc những ngày có tỷ lệ phút đo hợp lệ dưới ngưỡng. "
+             "Không thay đổi tập huấn luyện/test của mô hình đã lưu.",
+    ) / 100
+    st.caption(f"{start:%d/%m/%Y} → {end:%d/%m/%Y}")
+    st.divider()
+    st.markdown(
+        "[Nguồn UCI](https://doi.org/10.24432/C58K54) · "
+        "[Mã nguồn GitHub](https://github.com/toanhuynh040805-crypto/BigData)"
+    )
+    st.caption("Historical data 2006–2010 · One household · CC BY 4.0")
 
 if start > end:
-    st.error("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.")
+    st.error("Ngày bắt đầu phải nhỏ hơn ngày kết thúc.")
     st.stop()
-
-selected = daily.loc[(daily["date"].dt.date >= start) & (daily["date"].dt.date <= end)].copy()
+selected = select_daily(daily, start, end, minimum)
 if selected.empty:
-    st.warning("Không có dữ liệu trong khoảng thời gian này.")
+    st.warning("Bộ lọc hiện tại không có ngày phù hợp. Hãy mở rộng khoảng thời gian hoặc giảm bao phủ tối thiểu.")
     st.stop()
 
-provenance = quality.get("data_provenance", "other")
-if provenance == "synthetic":
-    st.warning("ĐANG HIỂN THỊ DỮ LIỆU TỔNG HỢP NHÂN TẠO (SYNTHETIC) – chỉ dùng demo, không dùng làm kết quả nghiên cứu.")
-elif provenance != "uci":
-    st.info("Nguồn dữ liệu chưa được xác nhận bằng tham số --data-provenance uci; hãy kiểm tra trước khi báo cáo.")
-
-st.info(
-    "Bộ dữ liệu mô tả **một hộ gia đình tại Pháp (2006–2010)**, "
-    "không phản ánh tiêu thụ điện của hiện tại. Ba sub-metering là **nhánh thiết bị**, không phải khu vực địa lý."
+is_uci = quality.get("data_provenance") == "uci" and metrics.get("data_provenance") == "uci"
+st.markdown(
+    '<div class="hero">'
+    '<div class="hero-eyebrow">BÁO CÁO ĐỒ ÁN CUỐI KỲ · NHẬP MÔN BIG DATA</div>'
+    '<h1>Phân tích & dự báo<br>tiêu thụ điện năng</h1>'
+    '<p>Hệ thống phân tích lịch sử sử dụng điện của một hộ gia đình bằng Apache Spark; '
+    'khám phá chu kỳ tiêu thụ, đánh giá chất lượng và dự báo với Random Forest Regression.</p>'
+    '<div class="hero-pills"><span>⚡ APACHE SPARK</span><span>🧠 RANDOM FOREST</span>'
+    '<span>📈 STREAMLIT + PLOTLY</span><span>🗂 UCI 2006–2010</span></div>'
+    '</div>',
+    unsafe_allow_html=True,
 )
 
-a, b, c, d = st.columns(4)
-a.metric("Tổng điện đã đo", f"{selected['energy_kwh'].sum():,.1f} kWh")
-b.metric("Trung bình/ngày quan sát", f"{selected['energy_kwh'].mean():,.2f} kWh")
-c.metric("Ngày có bản ghi", f"{len(selected):,}")
-d.metric("Bao phủ trung bình", f"{selected['coverage'].mean():.1%}")
-
-tab1, tab2, tab3 = st.tabs(["📊 Tổng quan", "🏠 Nhánh thiết bị", "🧠 Dự báo"])
-
-with tab1:
-    st.subheader("Tiêu thụ điện từng ngày")
-    fig = px.line(selected, x="date", y="energy_kwh", labels={"date": "Ngày", "energy_kwh": "Điện năng (kWh)"})
-    fig.update_layout(hovermode="x unified")
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption("Điện năng tính bằng tổng công suất trung bình theo phút / 60; ngày có thiếu mẫu không được tự động nội suy.")
-
-    m = monthly[
-        (monthly["month"] >= start.strftime("%Y-%m"))
-        & (monthly["month"] <= end.strftime("%Y-%m"))
-    ]
-    st.subheader("Tổng điện năng theo tháng")
-    st.plotly_chart(
-        px.bar(m, x="month", y="energy_kwh",
-               labels={"month": "Tháng", "energy_kwh": "Điện năng (kWh)"}),
-        use_container_width=True,
+if is_uci:
+    st.success(
+        "Nguồn đang xem: UCI Household Power Consumption (số liệu lịch sử thực). "
+        "Kết quả mô hình được lấy từ pipeline Spark; các biểu đồ ngày tùy thuộc bộ lọc."
     )
-    st.subheader("Công suất trung bình theo giờ trong ngày")
-    st.plotly_chart(
-        px.line(hourly, x="hour", y="mean_power_kw", markers=True,
-                labels={"hour": "Giờ (0–23)", "mean_power_kw": "Công suất (kW)"}),
-        use_container_width=True,
+elif quality.get("data_provenance") == "synthetic" or metrics.get("data_provenance") == "synthetic":
+    st.error(
+        "DỮ LIỆU GIẢ LẬP (SYNTHETIC): chỉ để kiểm thử giao diện, "
+        "không dùng các chỉ số này để nộp báo cáo hoặc minh chứng học thuật."
     )
-    st.caption("Biểu đồ theo giờ là đặc trưng trên toàn bộ dữ liệu, không chịu tác động bộ lọc ngày.")
+else:
+    st.warning("Nguồn dữ liệu chưa được xác nhận là UCI; kiểm tra chất lượng và xuất xứ trước khi trình bày.")
 
-with tab2:
-    st.subheader("Ba nhánh thiết bị điện")
-    names = {
-        "sub1_kwh": "Bếp",
-        "sub2_kwh": "Giặt / thiết bị phụ",
-        "sub3_kwh": "Bình nước nóng / điều hòa",
-    }
-    available = [column for column in names if column in selected]
-    long = selected.melt(
-        id_vars="date", value_vars=available,
-        var_name="Nhánh", value_name="Điện năng (kWh)",
-    )
-    long["Nhánh"] = long["Nhánh"].map(names)
-    st.plotly_chart(
-        px.area(long, x="date", y="Điện năng (kWh)", color="Nhánh"),
-        use_container_width=True,
-    )
-    st.caption(
-        "Sub_metering là điện năng đo theo phút (Wh), quy đổi sang kWh. "
-        "Không nhất thiết cộng lại bằng điện năng toàn hộ vì còn thiết bị không được phân nhánh."
-    )
+page = navigation
+if page == PAGES[0]:
+    render_overview(selected, hourly)
+elif page == PAGES[1]:
+    render_trends(selected, hourly)
+elif page == PAGES[2]:
+    render_devices(selected)
+elif page == PAGES[3]:
+    st.caption("Chú ý: trang dự báo sử dụng cố định toàn bộ tập KIỂM TRA theo thời gian, không chịu bộ lọc ngày.")
+    render_forecast(metrics, predictions, forecast)
+elif page == PAGES[4]:
+    render_quality(selected, daily, quality)
+else:
+    render_data(selected, quality, metrics, selected_source, predictions)
 
-with tab3:
-    st.subheader("Đánh giá Random Forest trên tập thời gian kiểm tra")
-    if metrics.get("status") != "trained":
-        st.warning(metrics.get("message", "Chưa có đủ ngày hợp lệ để huấn luyện mô hình."))
-    else:
-        rf, baseline = metrics["random_forest"], metrics["baseline_previous_day"]
-        st.caption(
-            f"Train: {metrics['train_rows']} ngày | Test: {metrics['test_rows']} ngày "
-            f"({metrics['test_start']} – {metrics['test_end']}); dự báo một ngày tiếp theo."
-        )
-        r1, r2, r3 = st.columns(3)
-        r1.metric("MAE Random Forest", f"{rf['mae']:.3f} kWh")
-        r2.metric("RMSE Random Forest", f"{rf['rmse']:.3f} kWh")
-        r3.metric("MAE Baseline", f"{baseline['mae']:.3f} kWh")
-        scores = pd.DataFrame(
-            [
-                {"Phương pháp": "Random Forest", "MAE (kWh)": rf["mae"], "RMSE (kWh)": rf["rmse"]},
-                {"Phương pháp": "Lặp lại hôm qua", "MAE (kWh)": baseline["mae"], "RMSE (kWh)": baseline["rmse"]},
-            ]
-        )
-        st.dataframe(scores, use_container_width=True, hide_index=True)
-        predictions = load_csv(str(RESULTS / "predictions.csv"))
-        if not predictions.empty:
-            comparison = predictions.melt(
-                id_vars="date",
-                value_vars=["actual_kwh", "rf_prediction_kwh", "baseline_kwh"],
-                var_name="Loại", value_name="kWh",
-            )
-            st.plotly_chart(
-                px.line(comparison, x="date", y="kWh", color="Loại"),
-                use_container_width=True,
-            )
-        next_day = load_csv(str(RESULTS / "forecast.csv"))
-        if not next_day.empty:
-            f = next_day.iloc[0]
-            st.success(f"Dự báo ngày kế tiếp trong chuỗi ({f['date']}): **{f['predicted_kwh']:.2f} kWh**")
-            st.caption("Đây là ngày cần dự báo sau giai đoạn lịch sử đủ dữ liệu; nếu ngày cuối bị thiếu mẫu, hệ thống dự báo ngày lịch sử đó. KHÔNG phải dự báo nhu cầu điện hôm nay.")
-        else:
-            st.warning("Không đủ bảy ngày lịch sử liên tiếp có chất lượng cao để dự báo ngày tiếp theo.")
-
-st.divider()
-with st.expander("Chất lượng dữ liệu và phương pháp"):
-    q1, q2, q3 = st.columns(3)
-    q1.metric("Dòng nguồn", f"{quality.get('raw_rows', 0):,}")
-    q2.metric("Dòng sạch duy nhất", f"{quality.get('clean_unique_rows', 0):,}")
-    q3.metric("Dòng trùng đã loại", f"{quality.get('duplicates_removed', 0):,}")
-    st.json(quality)
-    st.caption(
-        "Mốc thời gian gốc không chứa múi giờ; hệ thống giữ giờ hiển thị để nhóm dữ liệu, "
-        "không tự diễn giải chuyển đổi DST. Tỷ lệ bao phủ giúp nhận diện ngày bị thiếu mẫu."
-    )
-
-st.caption(
-    "Nguồn: Hebrail & Berard, UCI Individual Household Electric Power Consumption "
-    "(CC BY 4.0; DOI: 10.24432/C58K54)."
+st.markdown(
+    '<div class="footer">© BIG DATA ENERGY INTELLIGENCE · Đề tài 9. '
+    'Nguồn: UCI Machine Learning Repository — Hebrail & Berard, DOI 10.24432/C58K54. '
+    'Đơn vị năng lượng: kWh; công suất: kW. Kết quả chỉ phản ánh một hộ và giai đoạn dữ liệu lịch sử.</div>',
+    unsafe_allow_html=True,
 )
