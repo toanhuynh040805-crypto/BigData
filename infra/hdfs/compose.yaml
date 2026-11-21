@@ -1,0 +1,66 @@
+# Educational HDFS: NameNode + 2 persistent DataNodes; Spark client is optional.
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    hostname: namenode
+    ports:
+      - "127.0.0.1:9870:9870"
+      - "127.0.0.1:9000:9000"
+    environment:
+      CLUSTER_NAME: energy-bigdata
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_replication: "2"
+      HDFS_CONF_dfs_permissions_enabled: "false"
+    volumes:
+      - hdfs_name:/hadoop/dfs/name
+    networks: [energy]
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    hostname: datanode1
+    depends_on: [namenode]
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 namenode:9000"
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_replication: "2"
+      HDFS_CONF_dfs_permissions_enabled: "false"
+    volumes:
+      - hdfs_data1:/hadoop/dfs/data
+    networks: [energy]
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    hostname: datanode2
+    depends_on: [namenode]
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 namenode:9000"
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      HDFS_CONF_dfs_replication: "2"
+      HDFS_CONF_dfs_permissions_enabled: "false"
+    volumes:
+      - hdfs_data2:/hadoop/dfs/data
+    networks: [energy]
+  spark-client:
+    profiles: [spark]
+    build:
+      context: ../..
+      dockerfile: infra/hdfs/Dockerfile.spark
+    hostname: spark-client
+    working_dir: /workspace
+    command: ["sleep", "infinity"]
+    depends_on: [namenode, datanode1, datanode2]
+    environment:
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+      HADOOP_CONF_DIR: /opt/hadoop-conf
+      SPARK_LOCAL_IP: spark-client
+      PYSPARK_PYTHON: python
+      PYSPARK_DRIVER_PYTHON: python
+    volumes:
+      - ../..:/workspace
+      - ./config:/opt/hadoop-conf:ro
+    networks: [energy]
+volumes:
+  hdfs_name:
+  hdfs_data1:
+  hdfs_data2:
+networks:
+  energy:
+    driver: bridge
