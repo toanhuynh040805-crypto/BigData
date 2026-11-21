@@ -18,7 +18,7 @@ Mở PowerShell tại thư mục gốc repository. Trước tiên tạo bộ UCI
 6. docker compose -f infra/hdfs/compose.yaml exec namenode hdfs dfs -put -f /tmp/household.txt /bigdata/energy/raw/household_power_consumption.txt
 7. docker compose -f infra/hdfs/compose.yaml exec namenode hdfs dfs -ls /bigdata/energy/raw
 8. docker compose -f infra/hdfs/compose.yaml --profile spark up -d --build spark-client
-9. docker compose -f infra/hdfs/compose.yaml exec spark-client python scripts/run_pipeline.py --input hdfs://namenode:9000/bigdata/energy/raw/household_power_consumption.txt --output data/outputs/hdfs --master local[2] --data-provenance uci
+9. docker compose -f infra/hdfs/compose.yaml --profile spark exec spark-client python scripts/run_pipeline.py --input hdfs://namenode:9000/bigdata/energy/raw/household_power_consumption.txt --output data/outputs/hdfs --master local[2] --data-provenance uci
 
 Web admin NameNode: http://localhost:9870 (chỉ bind trên localhost). Với dữ liệu tổng hợp được tạo bằng generate_sample.py, bắt buộc chọn --data-provenance synthetic, không được gắn nhãn UCI thật.
 
