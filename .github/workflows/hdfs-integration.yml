@@ -1,0 +1,40 @@
+name: HDFS distributed integration
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - infra/hdfs/**
+      - scripts/hdfs_demo.sh
+      - .github/workflows/hdfs-integration.yml
+jobs:
+  hdfs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate offline sample dataset
+        run: python scripts/generate_sample.py --days 15
+      - name: Boot NameNode and two DataNodes
+        run: bash scripts/hdfs_demo.sh
+      - name: Verify actual HDFS block storage
+        run: |
+          docker compose -f infra/hdfs/compose.yaml exec -T namenode hdfs dfs -test -e /bigdata/energy/raw/household_power_consumption.txt
+          docker compose -f infra/hdfs/compose.yaml exec -T namenode hdfs dfs -du /bigdata/energy/raw/household_power_consumption.txt
+          docker compose -f infra/hdfs/compose.yaml exec -T namenode hdfs fsck /bigdata/energy/raw/household_power_consumption.txt -files -blocks -locations | tee /tmp/fsck.log
+          grep -q "HEALTHY" /tmp/fsck.log
+      - name: Build Spark client and read HDFS from same Docker network
+        run: |
+          docker compose -f infra/hdfs/compose.yaml --profile spark up -d --build spark-client
+          docker compose -f infra/hdfs/compose.yaml exec -T spark-client python scripts/run_pipeline.py --input hdfs://namenode:9000/bigdata/energy/raw/household_power_consumption.txt --output data/outputs/hdfs --master 'local[2]' --min-train-rows 10 --num-trees 5 --data-provenance synthetic
+          python -c "import json; from pathlib import Path; p=Path('data/outputs/hdfs'); q=json.loads((p/'quality.json').read_text()); assert q['clean_unique_rows']==21600, q; assert (p/'clean_parquet').is_dir(); print('Spark HDFS read and aggregation verified')"
+      - name: Print diagnostic logs on failure
+        if: failure()
+        run: |
+          docker compose -f infra/hdfs/compose.yaml ps || true
+          docker compose -f infra/hdfs/compose.yaml --profile spark logs --tail=65 || true
+      - name: Stop cluster
+        if: always()
+        run: docker compose -f infra/hdfs/compose.yaml --profile spark down
