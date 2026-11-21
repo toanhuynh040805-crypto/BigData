@@ -67,3 +67,5 @@ git pull origin main
 Nếu thiếu thư viện, cài tối thiểu: `.\.venv\Scripts\python.exe -m pip install streamlit plotly pandas --timeout 300 --retries 10`. Chọn “UCI thật · Kết quả GitHub” ở thanh bên để demo số liệu đã kiểm thử.
 
 **Giao diện đầy đủ:** [Ảnh minh chứng và hướng dẫn demo](docs/DASHBOARD.md) · [GitHub Actions](https://github.com/toanhuynh040805-crypto/BigData/actions).
+
+Các thư viện cần để xem Dashboard được tách riêng tại [requirements-dashboard.txt](requirements-dashboard.txt), tránh tải gói PySpark lớn khi chỉ thuyết trình.

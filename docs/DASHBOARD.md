@@ -16,7 +16,7 @@ Nếu chưa có thư viện giao diện:
 
 ~~~powershell
 cd E:\BigData
-.\.venv\Scripts\python.exe -m pip install "streamlit>=1.37,<2" "plotly>=5.24,<8" "pandas>=2.1,<4" --timeout 300 --retries 10
+.\.venv\Scripts\python.exe -m pip install -r requirements-dashboard.txt --timeout 300 --retries 10
 .\.venv\Scripts\python.exe -m streamlit run dashboard/app.py
 ~~~
 
