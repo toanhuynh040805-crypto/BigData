@@ -1,0 +1,73 @@
+name: Real UCI analysis and deliverables
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/real-uci.yml
+
+permissions:
+  contents: write
+
+jobs:
+  uci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Download UCI original data
+        run: python scripts/download_data.py
+      - name: Analyze actual minute observations with Spark
+        env:
+          SPARK_LOCAL_IP: 127.0.0.1
+          PYSPARK_PYTHON: python
+          PYSPARK_SUBMIT_ARGS: --driver-memory 3g pyspark-shell
+        run: |
+          python scripts/run_pipeline.py --master "local[2]" --data-provenance uci --num-trees 60
+      - name: Verify data and model
+        run: |
+          python -c "import json,pathlib; p=pathlib.Path('data/outputs'); q=json.loads((p/'quality.json').read_text()); m=json.loads((p/'metrics.json').read_text()); assert q['raw_rows']==2075259, q; assert q['clean_unique_rows'] > 2000000, q; assert m['status']=='trained', m; assert m['data_provenance']=='uci'; print('UCI full dataset validated:', q['clean_unique_rows'], 'clean observations')"
+      - name: Create Word and PowerPoint from UCI output
+        run: python scripts/build_deliverables.py
+      - name: Upload complete deliverables
+        uses: actions/upload-artifact@v4
+        with:
+          name: bigdata-uci-real-results
+          retention-days: 90
+          path: |
+            data/outputs/quality.json
+            data/outputs/metrics.json
+            data/outputs/daily.csv
+            data/outputs/monthly.csv
+            data/outputs/hourly_profile.csv
+            data/outputs/predictions.csv
+            data/outputs/forecast.csv
+            deliverables/Bao_cao_BigData_Dien_nang.docx
+            deliverables/Slide_BigData_Dien_nang.pptx
+            deliverables/charts/*.png
+      - name: Publish compact real results to GitHub
+        run: |
+          mkdir -p results/uci reports
+          cp data/outputs/{quality.json,metrics.json,daily.csv,monthly.csv,hourly_profile.csv,predictions.csv,forecast.csv} results/uci/
+          cp deliverables/Bao_cao_BigData_Dien_nang.docx reports/
+          cp deliverables/Slide_BigData_Dien_nang.pptx reports/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/uci reports
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "docs: publish verified UCI metrics and draft presentation [skip ci]"
+            git push origin HEAD:main
+          fi
