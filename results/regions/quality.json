@@ -1,0 +1,58 @@
+{
+  "source": "Open Power System Data (OPSD), Time series 2020-10-06",
+  "source_url": "https://data.open-power-system-data.org/time_series/2020-10-06/time_series_60min_singleindex.csv",
+  "doi": "https://doi.org/10.25832/time_series/2020-10-06",
+  "provenance": "opsd",
+  "data_kind": "national grid hourly load, not household consumption",
+  "year": 2019,
+  "timezone": "UTC",
+  "unit": {
+    "hourly": "MW",
+    "daily": "GWh",
+    "monthly": "GWh"
+  },
+  "aggregation": "sum of 1-hour MW measurements / 1000 = GWh",
+  "countries": {
+    "DE": {
+      "name": "Đức",
+      "observed_days": 365,
+      "observed_hours": 8760,
+      "mean_daily_coverage": 1.0,
+      "complete_days": 365
+    },
+    "ES": {
+      "name": "Tây Ban Nha",
+      "observed_days": 365,
+      "observed_hours": 8760,
+      "mean_daily_coverage": 1.0,
+      "complete_days": 365
+    },
+    "FR": {
+      "name": "Pháp",
+      "observed_days": 365,
+      "observed_hours": 8755,
+      "mean_daily_coverage": 0.9994292237442923,
+      "complete_days": 364
+    },
+    "GB": {
+      "name": "Great Britain",
+      "observed_days": 365,
+      "observed_hours": 8760,
+      "mean_daily_coverage": 1.0,
+      "complete_days": 365
+    },
+    "IT": {
+      "name": "Ý",
+      "observed_days": 365,
+      "observed_hours": 8760,
+      "mean_daily_coverage": 1.0,
+      "complete_days": 365
+    }
+  },
+  "caveats": [
+    "Country totals are not population-normalized.",
+    "Missing hours remain unfilled and can lower totals.",
+    "National GWh values must not be compared to UCI household kWh.",
+    "OPSD 2019 and UCI 2006–2010 are separate independent datasets."
+  ]
+}
