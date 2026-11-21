@@ -218,11 +218,11 @@ def render_devices(selected: pd.DataFrame) -> None:
     with right:
         st.subheader("Diễn biến từng nhánh theo ngày")
         long = selected.melt(id_vars="date", value_vars=list(DEVICE_LABELS),
-                             var_name="branch", value_name="energy_kwh")
+                             var_name="branch", value_name="branch_kwh")
         long["branch"] = long["branch"].map(DEVICE_LABELS)
-        fig = px.area(long, x="date", y="energy_kwh", color="branch",
+        fig = px.area(long, x="date", y="branch_kwh", color="branch",
                       color_discrete_sequence=PALETTE,
-                      labels={"date": "Ngày", "energy_kwh": "kWh/ngày", "branch": "Nhánh đo"})
+                      labels={"date": "Ngày", "branch_kwh": "kWh/ngày", "branch": "Nhánh đo"})
         plot(fig, 370)
     note("Sub-metering đo điện năng theo phút ở đơn vị Wh, đã chuyển sang kWh bằng cách chia 1000. "
          "Phần 'Chưa phân nhánh' = điện năng toàn hộ trừ ba nhánh; "
