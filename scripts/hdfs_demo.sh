@@ -3,16 +3,23 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 docker compose -f infra/hdfs/compose.yaml up -d namenode datanode1 datanode2
 ready=0
-for attempt in $(seq 1 60); do
-  if docker compose -f infra/hdfs/compose.yaml exec -T namenode hdfs dfsadmin -report 2>/dev/null | grep -q 'Live datanodes (2)'; then
+report=""
+for attempt in $(seq 1 50); do
+  # Capture whole output first: grep -q with pipefail could falsely fail via SIGPIPE.
+  report="$(docker compose -f infra/hdfs/compose.yaml exec -T namenode hdfs dfsadmin -report 2>&1 || true)"
+  if [[ "$report" == *"Live datanodes (2)"* ]]; then
     ready=1
     break
   fi
-  sleep 4
+  if (( attempt % 10 == 0 )); then
+    printf 'HDFS check %s: %s\n' "$attempt" "$(echo "$report" | grep -m1 'Live datanodes' || echo 'waiting for HDFS')"
+  fi
+  sleep 3
 done
 if [ "$ready" != "1" ]; then
   docker compose -f infra/hdfs/compose.yaml ps
-  echo "HDFS cluster failed to register 2 DataNodes" >&2
+  printf '%s\n' "$report" | tail -n 35
+  echo "HDFS did not report 2 live DataNodes" >&2
   exit 1
 fi
 docker compose -f infra/hdfs/compose.yaml exec -T namenode hdfs dfsadmin -report | grep "Live datanodes"
