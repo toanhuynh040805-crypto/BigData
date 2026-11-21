@@ -28,7 +28,7 @@ jobs:
       - name: Build Spark client and read HDFS from same Docker network
         run: |
           docker compose -f infra/hdfs/compose.yaml --profile spark up -d --build spark-client
-          docker compose -f infra/hdfs/compose.yaml exec -T spark-client python scripts/run_pipeline.py --input hdfs://namenode:9000/bigdata/energy/raw/household_power_consumption.txt --output data/outputs/hdfs --master 'local[2]' --min-train-rows 10 --num-trees 5 --data-provenance synthetic
+          docker compose -f infra/hdfs/compose.yaml --profile spark exec -T spark-client python scripts/run_pipeline.py --input hdfs://namenode:9000/bigdata/energy/raw/household_power_consumption.txt --output data/outputs/hdfs --master 'local[2]' --min-train-rows 10 --num-trees 5 --data-provenance synthetic
           python -c "import json; from pathlib import Path; p=Path('data/outputs/hdfs'); q=json.loads((p/'quality.json').read_text()); assert q['clean_unique_rows']==21600, q; assert (p/'clean_parquet').is_dir(); print('Spark HDFS read and aggregation verified')"
       - name: Print diagnostic logs on failure
         if: failure()
