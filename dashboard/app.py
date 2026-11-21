@@ -80,7 +80,7 @@ elif provenance != "uci":
 
 st.info(
     "Bộ dữ liệu mô tả **một hộ gia đình tại Pháp (2006–2010)**, "
-    "không phản ánh consumo điện của hiện tại. Ba sub-metering là **nhánh thiết bị**, không phải khu vực địa lý."
+    "không phản ánh tiêu thụ điện của hiện tại. Ba sub-metering là **nhánh thiết bị**, không phải khu vực địa lý."
 )
 
 a, b, c, d = st.columns(4)

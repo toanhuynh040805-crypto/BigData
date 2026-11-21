@@ -14,7 +14,7 @@ HEADER = (
     "Date;Time;Global_active_power;Global_reactive_power;Voltage;"
     "Global_intensity;Sub_metering_1;Sub_metering_2;Sub_metering_3\n"
 )
-DEFAULT_OUTPUT = Path("data/raw/household_power_consumption.txt")
+DEFAULT_OUTPUT = Path("data/sample/household_power_consumption.txt")
 
 
 def generate(output: Path, days: int = 70) -> int:

@@ -10,7 +10,7 @@
 
 ~~~powershell
 python scripts/download_data.py
-python scripts/run_pipeline.py
+python scripts/run_pipeline.py --data-provenance uci
 streamlit run dashboard/app.py
 ~~~
 

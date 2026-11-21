@@ -17,11 +17,11 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python scripts/download_data.py
-python scripts/run_pipeline.py
+python scripts/run_pipeline.py --data-provenance uci
 streamlit run dashboard/app.py
 ```
 
-Nếu muốn kiểm thử mà không cần tải UCI: `python scripts/generate_sample.py --days 70` và `python scripts/run_pipeline.py --input data/raw/household_power_consumption.txt`. Bộ mẫu là dữ liệu **tổng hợp nhân tạo**, không dùng để báo cáo độ chính xác khoa học.
+Nếu muốn kiểm thử mà không cần tải UCI: `python scripts/generate_sample.py --days 70` và `python scripts/run_pipeline.py --input data/sample/household_power_consumption.txt --data-provenance synthetic`. Bộ mẫu là dữ liệu **tổng hợp nhân tạo**, không dùng để báo cáo độ chính xác khoa học.
 
 Xem thêm [hướng dẫn đầy đủ](docs/SETUP.md), [kiến trúc](docs/ARCHITECTURE.md), [hướng dẫn demo](docs/DEMO.md) và [dàn ý báo cáo](docs/REPORT_OUTLINE.md).
 

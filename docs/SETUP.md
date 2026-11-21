@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 java -version
 python scripts/download_data.py
-python scripts/run_pipeline.py --master "local[*]"
+python scripts/run_pipeline.py --data-provenance uci --master "local[*]"
 streamlit run dashboard/app.py
 ~~~
 
@@ -29,7 +29,7 @@ Có thể xem kết quả ở thư mục data/outputs/ (Git không commit dữ l
 
 ~~~powershell
 python scripts/generate_sample.py --days 70
-python scripts/run_pipeline.py --input data/raw/household_power_consumption.txt
+python scripts/run_pipeline.py --input data/sample/household_power_consumption.txt --data-provenance synthetic
 streamlit run dashboard/app.py
 ~~~
 
