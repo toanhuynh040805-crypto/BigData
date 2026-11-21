@@ -9,13 +9,18 @@ import plotly.express as px
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parents[1]
-RESULTS = ROOT / "data" / "outputs"
+LOCAL_RESULTS = ROOT / "data" / "outputs"
+PUBLISHED_RESULTS = ROOT / "results" / "uci"
+REQUIRED_EXPORTS = ("daily.csv", "monthly.csv", "hourly_profile.csv", "quality.json", "metrics.json")
+RESULTS = LOCAL_RESULTS if all((LOCAL_RESULTS / name).is_file() for name in REQUIRED_EXPORTS) else PUBLISHED_RESULTS
 
 st.set_page_config(page_title="BigData | Phân tích điện năng", page_icon="⚡", layout="wide")
 st.title("⚡ Phân tích và dự báo tiêu thụ điện năng")
 st.caption("Đồ án Nhập môn Big Data · Apache Spark / PySpark · Một hộ gia đình")
+if RESULTS == PUBLISHED_RESULTS:
+    st.caption("Đang xem kết quả UCI thật đã được xử lý và công bố trong repository. Chạy pipeline để thay bằng kết quả riêng.")
 
-required = ["daily.csv", "monthly.csv", "hourly_profile.csv", "quality.json", "metrics.json"]
+required = list(REQUIRED_EXPORTS)
 missing = [name for name in required if not (RESULTS / name).exists()]
 if missing:
     st.error("Chưa có dữ liệu để hiển thị: " + ", ".join(missing))
@@ -174,7 +179,7 @@ with tab3:
         if not next_day.empty:
             f = next_day.iloc[0]
             st.success(f"Dự báo ngày kế tiếp trong chuỗi ({f['date']}): **{f['predicted_kwh']:.2f} kWh**")
-            st.caption("Đây là ngày tiếp theo sau ngày cuối của bộ dữ liệu, KHÔNG phải dự báo nhu cầu điện hôm nay.")
+            st.caption("Đây là ngày cần dự báo sau giai đoạn lịch sử đủ dữ liệu; nếu ngày cuối bị thiếu mẫu, hệ thống dự báo ngày lịch sử đó. KHÔNG phải dự báo nhu cầu điện hôm nay.")
         else:
             st.warning("Không đủ bảy ngày lịch sử liên tiếp có chất lượng cao để dự báo ngày tiếp theo.")
 

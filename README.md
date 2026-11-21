@@ -42,3 +42,16 @@ Dữ liệu 1 phút đo thiếu hoặc trùng sẽ ảnh hưởng tới ước l
 ## Tác giả và phạm vi
 
 Repository phục vụ mục đích học tập. Không áp dụng kết quả của một hộ gia đình để khái quát cho toàn bộ khu vực. Quy trình hỗ trợ đường dẫn đầu vào HDFS nếu môi trường Hadoop đã được cấu hình; không cần Hadoop để chạy demo Spark local.
+
+## Kết quả thực nghiệm đã công bố
+
+GitHub Actions đã chạy trực tiếp trên dữ liệu UCI gốc và lưu [bảng kết quả](results/uci/) cùng [báo cáo Word và slide PowerPoint dạng bản nháp](reports/).
+
+- 2.075.259 bản ghi ban đầu; 2.049.280 bản ghi có công suất hợp lệ; 25.979 bản ghi thiếu công suất.
+- Dữ liệu dùng cho mô hình: 1.362 ngày; train 1.089 ngày; test 273 ngày.
+- Random Forest: MAE **3,9731**, RMSE **5,4152** kWh/ngày; baseline hôm trước: MAE **5,0621** kWh/ngày.
+- Dự báo cho **26/11/2010** trên lịch sử đủ dữ liệu: khoảng **29,32 kWh**. Không phải dự báo thời điểm hiện tại.
+
+Bạn có thể mở ngay dashboard từ các CSV đã công bố sau khi cài dependencies: \`streamlit run dashboard/app.py\` (không cần tải lại UCI). Khi chạy pipeline riêng, dashboard sẽ ưu tiên \`data/outputs/\` trên máy.
+
+Các file Word/PPT do hệ thống sinh **chưa điền thông tin giảng viên, nhóm và phân công thực tế**; cần rà soát định dạng, nội dung trước khi nộp.

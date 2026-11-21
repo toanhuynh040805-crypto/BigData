@@ -66,3 +66,7 @@ python -m pytest -q
 ## Thông số quan trọng
 
 \`python scripts/run_pipeline.py --help\` hiển thị: \`--input\`, \`--output\`, \`--master\`, \`--expected-minutes-per-day\`, \`--min-coverage\`, \`--min-train-rows\`.
+
+## Mở ngay dashboard với kết quả đã có trên Git
+
+Sau `pip install -r requirements.txt`, chạy `streamlit run dashboard/app.py`. Nếu chưa có `data/outputs/` cục bộ, dashboard sẽ dùng `results/uci/` đã được xác minh từ GitHub Actions.

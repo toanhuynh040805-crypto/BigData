@@ -118,6 +118,20 @@ def build_word(
             "Không sử dụng các con số này làm kết quả nghiên cứu để nộp."
         )
     doc.add_page_break()
+    doc.add_heading("MỤC LỤC", 1)
+    for item in (
+        "LỊCH VÀ PHÂN CÔNG CÔNG VIỆC NHÓM",
+        "1. GIỚI THIỆU ĐỀ TÀI",
+        "2. CƠ SỞ LÝ THUYẾT",
+        "3. XÂY DỰNG HỆ THỐNG VÀ DỮ LIỆU",
+        "4. KẾT QUẢ THỰC NGHIỆM",
+        "5. DỰ BÁO VÀ ĐÁNH GIÁ",
+        "6. KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN",
+        "TÀI LIỆU THAM KHẢO",
+    ):
+        doc.add_paragraph(item)
+    doc.add_paragraph("Mục lục tóm tắt: bổ sung số trang và kiểm tra sau khi hoàn thiện bản nộp.")
+    doc.add_page_break()
 
     doc.add_heading("LỊCH VÀ PHÂN CÔNG CÔNG VIỆC NHÓM", 1)
     doc.add_paragraph(
@@ -130,6 +144,11 @@ def build_word(
         ["6–7", "Khảo sát, tiền xử lý, báo cáo tiến độ", "[Điền]"],
         ["8–9", "Mô hình, đánh giá, dashboard, tài liệu", "[Điền]"],
         ["10", "Kiểm thử, hoàn thiện, thuyết trình", "[Điền]"],
+    ])
+    doc.add_heading("Phân công và mức độ đóng góp thực tế", 2)
+    add_table(doc, ["Thành viên", "Công việc thực tế", "Mức đóng góp"], [
+        ["[Thành viên 1 / MSSV]", "[Bổ sung phần việc thực hiện]", "[Điền %]"],
+        ["[Thành viên 2 / MSSV]", "[Bổ sung phần việc thực hiện]", "[Điền %]"],
     ])
     doc.add_heading("1. GIỚI THIỆU ĐỀ TÀI", 1)
     doc.add_paragraph(

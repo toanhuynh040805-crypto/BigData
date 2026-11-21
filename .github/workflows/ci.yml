@@ -37,3 +37,7 @@ jobs:
           python scripts/generate_sample.py --days 45
           python scripts/run_pipeline.py --input data/sample/household_power_consumption.txt --data-provenance synthetic --min-train-rows 20 --num-trees 10 --master "local[2]"
           python -c "import json,pathlib; p=pathlib.Path('data/outputs'); q=json.loads((p/'quality.json').read_text()); m=json.loads((p/'metrics.json').read_text()); assert q['clean_unique_rows']==64800, q; assert m['status']=='trained', m; assert m['next_day_forecast_available'], m; assert (p/'clean_parquet').exists(); print('E2E Spark smoke test PASSED')"
+      - name: Word and PowerPoint smoke test
+        run: |
+          python scripts/build_deliverables.py
+          python -c "from pathlib import Path; p=Path('deliverables'); assert (p/'Bao_cao_BigData_Dien_nang.docx').stat().st_size>10000; assert (p/'Slide_BigData_Dien_nang.pptx').stat().st_size>10000; print('Document generation PASSED')"
