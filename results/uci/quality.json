@@ -1,0 +1,15 @@
+{
+  "raw_rows": 2075259,
+  "bad_timestamp": 0,
+  "missing_or_nan_power": 25979,
+  "negative_power": 0,
+  "valid_before_dedup": 2049280,
+  "clean_unique_rows": 2049280,
+  "invalid_rows": 25979,
+  "duplicates_removed": 0,
+  "note": "Duplicate local wall-clock timestamps are collapsed by completeness; timezone/DST offsets cannot be recovered from the original data.",
+  "data_provenance": "uci",
+  "input_path": "data/raw/household_power_consumption.txt",
+  "energy_formula": "sum(power_kw)/60 for valid minute observations",
+  "expected_minutes_per_day": 1440
+}

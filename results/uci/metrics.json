@@ -1,0 +1,32 @@
+{
+  "status": "trained",
+  "evaluation": "chronological 80/20 holdout, one-step-ahead",
+  "target_unit": "kWh/day",
+  "days_used": 1362,
+  "train_rows": 1089,
+  "test_rows": 273,
+  "test_start": "2010-01-24",
+  "test_end": "2010-11-25",
+  "min_coverage": 0.9,
+  "features": [
+    "lag_1_kwh",
+    "lag_7_kwh",
+    "rolling_7d_kwh",
+    "day_of_week",
+    "month",
+    "day_of_year"
+  ],
+  "random_forest": {
+    "mae": 3.973098331965958,
+    "rmse": 5.415154594543855,
+    "r2": 0.5443712840637616
+  },
+  "baseline_previous_day": {
+    "mae": 5.0620956043956005,
+    "rmse": 6.971921842751588,
+    "r2": 0.24474364507544677
+  },
+  "next_day_forecast_available": true,
+  "forecast_date": "2010-11-26",
+  "data_provenance": "uci"
+}
