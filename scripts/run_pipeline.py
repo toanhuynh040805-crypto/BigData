@@ -31,6 +31,11 @@ def main() -> None:
     parser.add_argument("--min-train-rows", type=int, default=60)
     parser.add_argument("--num-trees", type=int, default=60)
     parser.add_argument(
+        "--hdfs-parquet-output",
+        default=None,
+        help="Optional hdfs:// URI for an additional distributed cleaned Parquet copy.",
+    )
+    parser.add_argument(
         "--data-provenance",
         choices=["uci", "synthetic", "other"],
         default="other",
@@ -69,7 +74,10 @@ def main() -> None:
             raise ValueError("No valid measurements remain after cleaning")
 
         daily, monthly, hourly = aggregates(clean, args.expected_minutes_per_day)
-        export_aggregates(clean, daily, monthly, hourly, args.output)
+        export_aggregates(
+            clean, daily, monthly, hourly, args.output,
+            hdfs_parquet_output=args.hdfs_parquet_output,
+        )
         metrics = train_and_forecast(
             daily,
             args.output,

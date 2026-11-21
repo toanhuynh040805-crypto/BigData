@@ -133,7 +133,7 @@ def train_and_forecast(
 
     # Retrain on all eligible historical observations for the next recorded day.
     full_model = rf.fit(assembler.transform(labeled))
-    full_model.write().overwrite().save(str(output / "rf_model"))
+    full_model.write().overwrite().save((output / "rf_model").resolve().as_uri())
     future = usable.where(F.col("target_kwh").isNull()).orderBy(F.col("date").desc()).limit(1)
     forecast = full_model.transform(assembler.transform(future)).select(
         "date", F.col("prediction").alias("predicted_kwh"),

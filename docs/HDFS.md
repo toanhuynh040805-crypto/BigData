@@ -27,3 +27,10 @@ Bảo vệ dữ liệu: volumes bền vững khi dùng docker compose down, như
 ## Kiểm thử tái lập trên GitHub
 
 .github/workflows/hdfs-integration.yml tạo bộ mẫu nhân tạo, chạy NameNode và hai DataNodes, nạp tệp nguồn, dùng fsck kiểm chứng block HDFS khỏe mạnh, rồi xây dựng container Spark đọc từ URI hdfs:// và kiểm tra bản ghi/Parquet. Log ở GitHub Actions phân biệt rõ kết quả thực thi với phần tài liệu hướng dẫn. Kết quả kiểm thử không thay thế việc trình diễn trên Windows thực tế.
+
+
+## Định tuyến đầu ra Parquet rõ ràng
+
+Khi Spark đọc HDFS, Hadoop có thể đặt fs.defaultFS thành HDFS. Kể cả đường dẫn đầu ra không có hdfs://, Spark có thể tự ghi vào HDFS trong khi Python ghi CSV/JSON vào ổ cục bộ. Pipeline hiện buộc Parquet cục bộ về URI file:// và lưu mô hình MLlib tại file:// cho tính nhất quán. 
+
+Khi muốn lưu song song dữ liệu sạch lên hệ phân tán, truyền thêm tùy chọn --hdfs-parquet-output hdfs://namenode:9000/bigdata/energy/processed/clean_parquet. Workflow CI sẽ kiểm tra file _SUCCESS của Parquet trên HDFS và thư mục clean_parquet trên volume cục bộ, giúp chứng minh hai loại lưu trữ.

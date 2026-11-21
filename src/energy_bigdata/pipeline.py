@@ -188,13 +188,21 @@ def export_aggregates(
     monthly: DataFrame,
     hourly_profile: DataFrame,
     output: Path,
+    hdfs_parquet_output: str | None = None,
 ) -> None:
     output.mkdir(parents=True, exist_ok=True)
-    (
-        clean.write.mode("overwrite")
+    # Spark honors Hadoop fs.defaultFS. Without an explicit file:// scheme,
+    # a seemingly relative local path silently goes to HDFS when connected.
+    local_parquet_uri = (output / "clean_parquet").resolve().as_uri()
+    (clean.write.mode("overwrite")
         .partitionBy("year", "month")
-        .parquet(str(output / "clean_parquet"))
-    )
+        .parquet(local_parquet_uri))
+    if hdfs_parquet_output:
+        # Optional second write allows inspecting both source and processed
+        # Parquet directly in HDFS, separate from local CSV/JSON dashboard data.
+        (clean.write.mode("overwrite")
+            .partitionBy("year", "month")
+            .parquet(hdfs_parquet_output))
     for name, frame, order in (
         ("daily.csv", daily, "date"),
         ("monthly.csv", monthly, "month"),
