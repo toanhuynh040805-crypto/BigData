@@ -29,3 +29,11 @@ jobs:
           SPARK_LOCAL_IP: 127.0.0.1
           PYSPARK_PYTHON: python
         run: python -m pytest -q
+      - name: Full pipeline smoke test (synthetic data ONLY)
+        env:
+          SPARK_LOCAL_IP: 127.0.0.1
+          PYSPARK_PYTHON: python
+        run: |
+          python scripts/generate_sample.py --days 45
+          python scripts/run_pipeline.py --input data/sample/household_power_consumption.txt --data-provenance synthetic --min-train-rows 20 --num-trees 10 --master "local[2]"
+          python -c "import json,pathlib; p=pathlib.Path('data/outputs'); q=json.loads((p/'quality.json').read_text()); m=json.loads((p/'metrics.json').read_text()); assert q['clean_unique_rows']==64800, q; assert m['status']=='trained', m; assert m['next_day_forecast_available'], m; assert (p/'clean_parquet').exists(); print('E2E Spark smoke test PASSED')"
