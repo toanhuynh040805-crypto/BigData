@@ -1,0 +1,53 @@
+name: OPSD real regional electricity analysis
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - src/energy_bigdata/regions.py
+      - scripts/download_regions.py
+      - scripts/run_regions.py
+      - .github/workflows/regions.yml
+
+permissions:
+  contents: write
+
+jobs:
+  countries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install pinned Spark analytic dependencies
+        run: pip install "pyspark==3.5.9" "pandas==2.2.3" "numpy==1.26.4" "pyarrow==17.0.0"
+      - name: Download original OPSD data 2020 release
+        run: python scripts/download_regions.py
+      - name: Spark analyze historical national electricity load in 2019
+        env:
+          SPARK_LOCAL_IP: 127.0.0.1
+          PYSPARK_PYTHON: python
+        run: python scripts/run_regions.py --year 2019 --master 'local[2]' --output results/regions
+      - name: Validate geographic authenticity and daily measurement units
+        run: |
+          python -c "import json,pandas as pd; from pathlib import Path; p=Path('results/regions'); q=json.loads((p/'quality.json').read_text()); d=pd.read_csv(p/'daily.csv'); assert q['provenance']=='opsd' and q['year']==2019; assert len(q['countries'])==5 and len(d)>1600; assert (d['observed_gwh']>0).all() and (d['observed_hours']<=24).all(); assert d['country'].nunique()==5; print('Verified geographic national load records:',len(d))"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: opsd-country-load-2019
+          retention-days: 90
+          path: results/regions/
+      - name: Publish verified aggregated results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/regions
+          if ! git diff --cached --quiet; then
+            git commit -m "data: verified OPSD 2019 regional electricity aggregates [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
