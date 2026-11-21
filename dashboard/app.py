@@ -20,14 +20,17 @@ from dashboard.analytics import prepare_daily, prepare_predictions, select_daily
 from dashboard.branding import hero_header, sidebar_brand, sidebar_data_badge
 from dashboard.pages_explore import render_devices, render_overview, render_trends
 from dashboard.pages_insights import render_data, render_forecast, render_quality
+from dashboard.pages_regions import load_region_data, render_regions
 
 REQUIRED = ("daily.csv", "monthly.csv", "hourly_profile.csv", "quality.json", "metrics.json")
 PUBLISHED = ROOT / "results" / "uci"
 LOCAL = ROOT / "data" / "outputs"
+REGIONAL = ROOT / "results" / "regions"
 PAGES = [
     "Tổng quan",
     "Phân tích xu hướng",
     "Thiết bị tiêu thụ",
+    "So sánh khu vực",
     "Dự báo thông minh",
     "Chất lượng dữ liệu",
     "Xuất dữ liệu & báo cáo",
@@ -208,9 +211,20 @@ elif page == PAGES[1]:
 elif page == PAGES[2]:
     render_devices(selected)
 elif page == PAGES[3]:
-    st.caption("Chú ý: trang dự báo sử dụng cố định toàn bộ tập KIỂM TRA theo thời gian, không chịu bộ lọc ngày.")
-    render_forecast(metrics, predictions, forecast)
+    if not REGIONAL.is_dir():
+        st.warning("Chưa có kết quả khu vực OPSD. Xem docs/REGIONS.md để chạy Spark và công bố bảng khu vực.")
+    else:
+        try:
+            regional_meta, regional_daily, regional_months, regional_hours = load_region_data(
+                REGIONAL, csv_from, json_from,
+            )
+            render_regions(regional_meta, regional_daily, regional_months, regional_hours)
+        except (OSError, ValueError, KeyError) as error:
+            st.error(f"Không thể đọc kết quả khu vực: {error}")
 elif page == PAGES[4]:
+    st.caption("Trang dự báo sử dụng tập KIỂM TRA UCI theo thời gian, không chịu bộ lọc ngày và không dùng OPSD.")
+    render_forecast(metrics, predictions, forecast)
+elif page == PAGES[5]:
     render_quality(selected, daily, quality)
 else:
     render_data(selected, quality, metrics, selected_source, predictions)

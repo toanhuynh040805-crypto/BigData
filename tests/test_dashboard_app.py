@@ -8,6 +8,7 @@ PAGES = [
     "Tổng quan",
     "Phân tích xu hướng",
     "Thiết bị tiêu thụ",
+    "So sánh khu vực",
     "Dự báo thông minh",
     "Chất lượng dữ liệu",
     "Xuất dữ liệu & báo cáo",
