@@ -9,7 +9,7 @@ Tài liệu đối chiếu bản kế hoạch đồ án Nhập môn Big Data do 
 | Dữ liệu nguồn đủ thông tin | UCI có DOI; OPSD có DOI, năm và quy tắc đơn vị | Đã công bố cả 2 nguồn |
 | Khảo sát dữ liệu và xử lý lỗi | pipeline.py, metrics.json, quality.json, tests/test_pipeline.py | Đã kiểm thử |
 | Dữ liệu lớn, kiến trúc và luồng | Spark → Parquet → aggregations → model; docs/ARCHITECTURE.md | Đã thực hiện |
-| Lưu trữ phân tán HDFS | infra/hdfs, scripts/hdfs_demo.sh, hdfs-integration.yml | Cần kiểm tra run HDFS trên Actions; không tự nhận đạt |
+| Lưu trữ phân tán HDFS | infra/hdfs, scripts/hdfs_demo.sh, hdfs-integration.yml | Đã kiểm thử: 2 DataNodes, block HEALTHY, Spark đọc HDFS và ghi Parquet hai nơi |
 | Phân tích theo giờ/ngày | results/uci/hourly_profile.csv, daily.csv | Đã có |
 | Phân tích theo khu vực | src/energy_bigdata/regions.py, results/regions/ và 7th dashboard page | Đã chạy Spark thật trên OPSD năm 2019 |
 | Hồi quy/dự báo điện năng | Spark MLlib RandomForestRegressor + baseline ngày hôm trước | Đã huấn luyện/đánh giá UCI thật |
@@ -32,3 +32,8 @@ Tài liệu đối chiếu bản kế hoạch đồ án Nhập môn Big Data do 
 - HDFS: workflow .github/workflows/hdfs-integration.yml; phải xem trực tiếp trạng thái thành công/thất bại.
 - Dashboard 7 trang: .github/workflows/dashboard-ui.yml.
 - Bộ unit/integrity tests: .github/workflows/ci.yml.
+
+## Minh chứng HDFS đã xác minh
+
+GitHub Actions [HDFS distributed integration](https://github.com/toanhuynh040805-crypto/BigData/actions/runs/44882806655) đã hoàn thành với kết quả **Success** (source commit b5d7b5aa).
+Bài thử tạo 21.600 phút dữ liệu synthetic để kiểm tra kỹ thuật; Spark thật đọc từ hdfs://namenode:9000, làm sạch và xuất Parquet file:// cục bộ, đồng thời ghi thêm Parquet trong hdfs:// (kiểm tra dấu _SUCCESS). Điều này chứng minh tích hợp HDFS–Spark, **không** được sử dụng dữ liệu synthetic để tuyên bố độ chính xác mô hình UCI thực.

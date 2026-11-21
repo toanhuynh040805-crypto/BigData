@@ -34,3 +34,7 @@ Bảo vệ dữ liệu: volumes bền vững khi dùng docker compose down, như
 Khi Spark đọc HDFS, Hadoop có thể đặt fs.defaultFS thành HDFS. Kể cả đường dẫn đầu ra không có hdfs://, Spark có thể tự ghi vào HDFS trong khi Python ghi CSV/JSON vào ổ cục bộ. Pipeline hiện buộc Parquet cục bộ về URI file:// và lưu mô hình MLlib tại file:// cho tính nhất quán. 
 
 Khi muốn lưu song song dữ liệu sạch lên hệ phân tán, truyền thêm tùy chọn --hdfs-parquet-output hdfs://namenode:9000/bigdata/energy/processed/clean_parquet. Workflow CI sẽ kiểm tra file _SUCCESS của Parquet trên HDFS và thư mục clean_parquet trên volume cục bộ, giúp chứng minh hai loại lưu trữ.
+
+## Kết quả tích hợp thực tế đã chạy
+
+Run thành công: [HDFS distributed integration](https://github.com/toanhuynh040805-crypto/BigData/actions/runs/44882806655). Đã kiểm chứng NameNode + 2 DataNodes, fsck HEALTHY, Spark đọc 21.600 quan sát synthetic qua HDFS và ghi Parquet cả cục bộ lẫn HDFS. Kết quả này chỉ thuộc runner GitHub Actions, không phải chứng minh đã chạy trên máy Windows cá nhân.

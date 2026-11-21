@@ -91,3 +91,12 @@ Tính năng bổ sung: [Docker Compose HDFS 2 DataNodes + Spark client](docs/HDF
 ### Các nội dung ngoài phạm vi cập nhật hiện tại
 
 Word/PPT hiện là bản nháp có sẵn; chưa điền thông tin nhóm và không xác minh demo trực tiếp trên Windows. Không đồng nhất các bước này với kiểm thử CI của phần ứng dụng.
+
+### Kiểm thử tích hợp hoàn chỉnh trên GitHub Actions
+
+- [UCI toàn bộ dữ liệu và dự báo](https://github.com/toanhuynh040805-crypto/BigData/actions/workflows/real-uci.yml): kết quả thực trong [results/uci](results/uci/).
+- [OPSD so sánh 5 quốc gia](https://github.com/toanhuynh040805-crypto/BigData/actions/runs/44881933446): đã chạy thành công, bảng trong [results/regions](results/regions/).
+- [Hadoop HDFS + Spark](https://github.com/toanhuynh040805-crypto/BigData/actions/runs/44882806655): **Success**, kiểm chứng 2 DataNodes, block HEALTHY, PySpark đọc HDFS và ghi Parquet lên HDFS.
+- [Kiểm thử mã nguồn](https://github.com/toanhuynh040805-crypto/BigData/actions/runs/44882806641): **Success**.
+
+Phần HDFS được kiểm thử bằng dữ liệu synthetic rõ nhãn; UCI và OPSD mới là nguồn dữ liệu thực dùng cho các số liệu phân tích khoa học.
