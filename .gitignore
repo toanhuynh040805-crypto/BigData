@@ -1,0 +1,21 @@
+# Generated / downloaded data
+data/raw/
+data/outputs/
+data/processed/
+data/*.zip
+# Local environment
+.venv/
+venv/
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+.vscode/
+.idea/
+*.log
+spark-warehouse/
+metastore_db/
+derby.log
+*.crc

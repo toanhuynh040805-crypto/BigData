@@ -1,0 +1,1 @@
+"""Analysis of household energy consumption with Apache Spark."""
