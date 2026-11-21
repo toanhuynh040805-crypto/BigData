@@ -1,6 +1,6 @@
 # Dashboard phiên bản đồ án cuối kỳ — Energy Intelligence
 
-Dashboard Streamlit 6 màn hình bằng tiếng Việt, biểu đồ Plotly tương tác và giao diện responsive. Sử dụng bản tổng hợp UCI thật đã công bố trong thư mục results/uci/ (không phải dữ liệu giả lập).
+Dashboard Streamlit 7 màn hình bằng tiếng Việt, biểu đồ Plotly tương tác và giao diện responsive. Sử dụng bản tổng hợp UCI thật đã công bố trong thư mục results/uci/ (không phải dữ liệu giả lập).
 
 ## Chạy nhanh trên Windows, không cần tải PySpark
 
@@ -24,13 +24,14 @@ Mở http://localhost:8501. Để tắt, nhấn Ctrl+C trong Terminal đang ch�
 
 PySpark (~318 MB) và Java 17 chỉ cần khi **tự chạy lại pipeline Spark**, không cần khi xem CSV/JSON có sẵn. Nếu muốn xử lý lại dữ liệu, xem [SETUP.md](SETUP.md).
 
-## Hệ thống 6 màn hình
+## Hệ thống 7 màn hình
 
 | Màn hình | Chức năng | Minh chứng cho báo cáo |
 |---|---|---|
 | Tổng quan | KPI, điện năng theo ngày và trung bình trượt, tháng, giờ cao điểm, insight tự động | Mục tiêu và kết quả xử lý dữ liệu |
 | Xu hướng & cao điểm | Ngày trong tuần, ngày thường/cuối tuần, heatmap tháng-năm, IQR phát hiện ngày khác biệt | Phân tích mô tả và phát hiện bất thường |
 | Nhánh thiết bị | Ba nhánh Wh→kWh, tỷ trọng/diễn biến, ước lượng điện năng chưa phân nhánh, kịch bản giảm giả định | Phân tích theo thiết bị |
+| So sánh khu vực | OPSD năm 2019: 5 quốc gia, điện năng GWh và công suất MW, độ bao phủ theo giờ | Phân tích khu vực bằng dữ liệu thật, độc lập với UCI |
 | Dự báo AI | MAE/RMSE/R², % cải thiện với baseline, biểu đồ thực tế-vs-dự báo, sai số theo tháng, tải dự báo | Quy trình mô hình hóa và đánh giá |
 | Chất lượng dữ liệu | Tổng dòng, dòng lỗi/trùng, bao phủ từng ngày, ngày dưới 90%, quy tắc làm sạch | Tiền xử lý và độ tin cậy |
 | Dữ liệu & báo cáo | Bảng lọc, tải CSV và JSON, kiến trúc, link GitHub/Word/PPT/UCI | Tính tái lập và minh chứng thực nghiệm |
@@ -68,3 +69,10 @@ Nguồn file: results/uci/quality.json và results/uci/metrics.json.
 - Không biết điện năng của các phút bị thiếu; số liệu là ước lượng theo các mẫu đo được.
 - Kết quả dự báo không chứng minh mô hình hoạt động ở năm hiện tại.
 - File Word/PPT trong reports/ là bản nháp tạo tự động và phải cập nhật thông tin giảng viên, hai thành viên, đóng góp thực tế.
+
+
+## Trang 7: So sánh khu vực địa lý
+
+Kết quả vùng được đọc từ results/regions/ (OPSD 2019, MW và GWh), hoàn toàn độc lập với results/uci/ (UCI 2006–2010, kWh). Nguồn OPSD xem docs/REGIONS.md; cả hai tập được xử lý bằng Spark và công bố trên GitHub.
+
+Không cần tải bộ OPSD 124 MB trên máy Windows nếu đã pull repository. Các bộ lọc ngày ở sidebar chỉ áp dụng cho nhánh UCI; trang so sánh khu vực dùng cùng năm 2019 và có bộ chọn quốc gia độc lập.

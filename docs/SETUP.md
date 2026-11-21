@@ -35,17 +35,11 @@ streamlit run dashboard/app.py
 
 Để dùng dữ liệu UCI thật sau khi demo offline: \`python scripts/download_data.py --force\`, chạy lại pipeline.
 
-## Lưu trữ Hadoop HDFS (tùy chọn)
+## HDFS và phân tích khu vực (tùy chọn)
 
-HDFS cần cluster Hadoop đang hoạt động, thư mục HDFS có quyền truy cập và Spark có cấu hình Hadoop tương ứng. Ví dụ:
+HDFS hiện có Docker Compose (một NameNode, hai DataNodes và Spark client). Hướng dẫn triển khai và kiểm chứng: [HDFS.md](HDFS.md). Không cần triển khai HDFS nếu chỉ mở Dashboard để xem kết quả đã chạy.
 
-~~~powershell
-hdfs dfs -mkdir -p /bigdata/energy/raw
-hdfs dfs -put -f data/raw/household_power_consumption.txt /bigdata/energy/raw/
-python scripts/run_pipeline.py --input hdfs:///bigdata/energy/raw/household_power_consumption.txt --master "local[*]"
-~~~
-
-Dữ liệu đọc có thể ở HDFS, báo cáo CSV/JSON và Parquet được xuất về data/outputs/ **trên máy chạy Spark**. Thay \`--master\` bằng địa chỉ Spark master phù hợp khi đã cấu hình cluster. Dự án không tự cung cấp Hadoop cluster.
+Phân tích so sánh địa lý dùng nguồn OPSD quốc gia độc lập; xem [REGIONS.md](REGIONS.md). GitHub đã lưu kết quả thật tại [results/regions](../results/regions/). Không cần tải dữ liệu OPSD 124 MB trên Windows nếu chỉ cần xem bảng vùng.
 
 ## Kiểm thử
 
@@ -69,4 +63,4 @@ python -m pytest -q
 
 ## Mở ngay dashboard với kết quả đã có trên Git
 
-Sau `pip install -r requirements.txt`, chạy `streamlit run dashboard/app.py`. Nếu chưa có `data/outputs/` cục bộ, dashboard sẽ dùng `results/uci/` đã được xác minh từ GitHub Actions.
+Sau `pip install -r requirements-dashboard.txt`, chạy `streamlit run dashboard/app.py`. Nếu chưa có `data/outputs/` cục bộ, dashboard sẽ dùng `results/uci/` đã được xác minh từ GitHub Actions.

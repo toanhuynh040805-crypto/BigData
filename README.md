@@ -52,7 +52,7 @@ GitHub Actions đã chạy trực tiếp trên dữ liệu UCI gốc và lưu [b
 - Random Forest: MAE **3,9731**, RMSE **5,4152** kWh/ngày; baseline hôm trước: MAE **5,0621** kWh/ngày.
 - Dự báo cho **26/11/2010** trên lịch sử đủ dữ liệu: khoảng **29,32 kWh**. Không phải dự báo thời điểm hiện tại.
 
-Dashboard có 6 màn hình với đồ thị ngày/tháng, cao điểm, ba nhánh thiết bị, bất thường IQR, dự báo AI, chất lượng dữ liệu và xuất bảng CSV/JSON. Có thể mở từ kết quả UCI đã lưu trên GitHub, KHÔNG cần cài Java/PySpark để xem biểu đồ. Hướng dẫn chi tiết tại [docs/DASHBOARD.md](docs/DASHBOARD.md).
+Dashboard có 7 màn hình với đồ thị ngày/tháng, cao điểm, ba nhánh thiết bị, bất thường IQR, so sánh phụ tải 5 quốc gia (OPSD), dự báo AI, chất lượng dữ liệu và xuất bảng CSV/JSON. Có thể mở từ kết quả UCI đã lưu trên GitHub, KHÔNG cần cài Java/PySpark để xem biểu đồ. Hướng dẫn chi tiết tại [docs/DASHBOARD.md](docs/DASHBOARD.md).
 
 Các file Word/PPT do hệ thống sinh **chưa điền thông tin giảng viên, nhóm và phân công thực tế**; cần rà soát định dạng, nội dung trước khi nộp.
 
@@ -77,3 +77,17 @@ Các thư viện cần để xem Dashboard được tách riêng tại [requirem
 - Dashboard vẫn chạy trực tiếp từ `results/uci/`, không cần Java/PySpark khi chỉ trình diễn.
 
 Cập nhật trên Windows: `cd E:\BigData` → `git pull --ff-only origin main` → `.\.venv\Scripts\python.exe -m streamlit run dashboard/app.py`.
+
+
+## Phạm vi hoàn thiện ứng dụng và phân tích
+
+Đồ án có **hai luồng dữ liệu độc lập**:
+
+- Luồng A (UCI): một hộ gia đình Pháp (2006–2010), điện năng kWh/ngày, Apache Spark/PySpark + Spark MLlib Random Forest, phân tích thiết bị và dashboard.
+- Luồng B (OPSD): phụ tải điện năm 2019 của 5 quốc gia châu Âu (MW theo giờ UTC, GWh theo ngày/tháng), Spark xử lý để hỗ trợ yêu cầu phân tích "theo khu vực"; không đưa vào mô hình UCI. Xem [phương pháp](docs/REGIONS.md) và [kết quả OPSD đã chạy thật](results/regions/).
+
+Tính năng bổ sung: [Docker Compose HDFS 2 DataNodes + Spark client](docs/HDFS.md), cùng workflow tích hợp tại [GitHub Actions](https://github.com/toanhuynh040805-crypto/BigData/actions). Chỉ ghi nhận một phép kiểm thử hạ tầng thành công nếu workflow HDFS báo xanh. Không cần Docker/Java/PySpark khi chỉ mở dashboard xem kết quả UCI/OPSD đã công bố.
+
+### Các nội dung ngoài phạm vi cập nhật hiện tại
+
+Word/PPT hiện là bản nháp có sẵn; chưa điền thông tin nhóm và không xác minh demo trực tiếp trên Windows. Không đồng nhất các bước này với kiểm thử CI của phần ứng dụng.

@@ -37,3 +37,22 @@ Parquet phân vùng theo year/month (data/outputs/clean_parquet/)
 ## Giới hạn
 
 Chỉ có một hộ nên không thể suy luận theo tỉnh/thành/khu vực địa lý. Các ngày thiếu dữ liệu có thể làm méo ước lượng điện năng; không nội suy bừa. Mô hình chưa có biến ngoại sinh như thời tiết, ngày lễ và giá điện. Số liệu dự báo là kết quả mô hình thực nghiệm, không phải hóa đơn điện.
+
+
+## Nhánh B: dữ liệu phụ tải điện theo khu vực địa lý (OPSD)
+
+UCI không chứa khu vực địa lý; vì vậy nhánh này dùng nguồn riêng OPSD/ENTSO-E Time Series 2020-10-06, với cùng kỳ 2019 cho các nước Đức, Pháp, Ý, Tây Ban Nha và Great Britain.
+
+- Đầu vào: time_series_60min_singleindex.csv, mẫu công suất phụ tải MW trung bình theo giờ UTC.
+- PySpark: chọn 5 cột đo công suất quốc gia, loại null/âm, chuẩn hóa dữ liệu dạng dài, loại trùng giờ UTC.
+- Ngày: tổng (MW * 1 giờ) / 1000 thành GWh, kèm số giờ có đo / 24. Tháng: cộng GWh quan sát.
+- Giờ: trung bình MW theo khung giờ UTC 0–23.
+- Xuất kết quả đã xác nhận từ GitHub Actions: results/regions/ (CSV/JSON). Dashboard trang "So sánh khu vực" hiển thị các đồ thị riêng.
+
+**Không** nối OPSD (cấp lưới quốc gia, GWh) với UCI (cấp hộ, kWh) hay dùng OPSD để cải thiện giả tạo MAE của Random Forest UCI. So sánh quốc gia chưa được chuẩn hóa theo dân số; không suy luận quốc gia nào tiết kiệm điện hơn.
+
+## Nhánh lưu trữ HDFS tùy chọn
+
+infra/hdfs/compose.yaml mô tả NameNode, hai DataNodes với replication 2 và Spark client cùng network để kiểm chứng việc Spark đọc một đường dẫn hdfs://. Hướng dẫn đầy đủ: docs/HDFS.md; workflow kiểm tra: .github/workflows/hdfs-integration.yml.
+
+Lưu trữ HDFS và xử lý Spark là hai chức năng khác nhau. Việc đọc file UCI từ results/uci CSV đã tổng hợp không chứng minh HDFS đang chạy.
