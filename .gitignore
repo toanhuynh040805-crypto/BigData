@@ -20,3 +20,4 @@ spark-warehouse/
 metastore_db/
 derby.log
 *.crc
+deliverables/
